@@ -82,17 +82,32 @@ openclaw 1claw status
 
 ### 1.5a Start the OpenClaw TUI
 
-The OpenClaw TUI needs its own gateway (separate from the OpenShell gateway). Start it inside the sandbox:
+The OpenClaw TUI is a chat interface for the AI agent — it is **not** a shell. Run `openclaw 1claw` commands (enroll, status, etc.) directly in the sandbox shell, not inside the TUI.
+
+**1. Configure the Anthropic API key** (required for the AI agent):
+
+```bash
+export ANTHROPIC_API_KEY="your-anthropic-api-key"
+openclaw agents add main --provider anthropic --api-key "$ANTHROPIC_API_KEY"
+```
+
+**2. Start the OpenClaw gateway** (separate from the OpenShell gateway):
 
 ```bash
 openclaw gateway run --auth token --token mytoken --allow-unconfigured &
 sleep 2
+```
+
+**3. Launch the TUI:**
+
+```bash
 openclaw tui --token mytoken
 ```
 
 - `--allow-unconfigured` is required because `gateway.mode` is not set in the sandbox's OpenClaw config.
 - `--auth token --token mytoken` sets a shared token; the TUI uses the same token to connect.
 - The gateway runs in the background (`&`); the TUI connects to it on `ws://127.0.0.1:18789`.
+- To exit the TUI, press Ctrl+C or `q`.
 
 **If you don’t have credentials yet (agent self-onboarding):** the agent can self-enroll with 1claw; the API key is emailed to you. Either:
 
