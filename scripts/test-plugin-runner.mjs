@@ -1,12 +1,10 @@
 #!/usr/bin/env node
 /**
- * Test runner for the 1claw OpenClaw plugin (Node ESM).
+ * Test runner for the Ampersend OpenClaw plugin (Node ESM).
  * Uses tsx to run the TypeScript plugin; falls back to instructions if tsx missing.
  *
  * Usage: node scripts/test-plugin-runner.mjs [command] [args...]
  * Example: node scripts/test-plugin-runner.mjs status
- *
- * Requires: ONECLAW_VAULT_ID and either ONECLAW_TOKEN or (ONECLAW_AGENT_ID + ONECLAW_API_KEY)
  */
 
 import { spawnSync } from "child_process";

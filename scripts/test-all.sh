@@ -1,15 +1,15 @@
 #!/usr/bin/env bash
-# Run all 1claw + OpenShell/NemoClaw integration tests.
+# Run all Ampersend + OpenShell/NemoClaw integration tests.
 # - Policy YAML validation (no credentials)
-# - Blueprint dry-run (needs ONECLAW_VAULT_ID, ONECLAW_AGENT_ID, ONECLAW_API_KEY)
-# - Plugin status (same env vars)
+# - Blueprint dry-run (no credentials needed)
+# - Plugin status (needs ampersend CLI configured)
 
 set -e
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 
 echo "=============================================="
-echo "  1claw × OpenShell / NemoClaw — test suite"
+echo "  Ampersend × OpenShell / NemoClaw — test suite"
 echo "=============================================="
 echo ""
 
@@ -18,25 +18,17 @@ echo "1/3 OpenShell policy"
 bash "$SCRIPT_DIR/test-openshell-policy.sh"
 echo ""
 
-# 2) Blueprint (needs creds)
+# 2) Blueprint (always runs — no credentials needed for Ampersend blueprint)
 echo "2/3 NemoClaw blueprint (resolve + plan, --skip-apply)"
-if [[ -z "$ONECLAW_VAULT_ID" || -z "$ONECLAW_AGENT_ID" || -z "$ONECLAW_API_KEY" ]]; then
-  echo "  SKIP — set ONECLAW_VAULT_ID, ONECLAW_AGENT_ID, ONECLAW_API_KEY to run"
-else
-  bash "$SCRIPT_DIR/test-blueprint.sh" || exit 1
-fi
+bash "$SCRIPT_DIR/test-blueprint.sh" || exit 1
 echo ""
 
-# 3) Plugin (needs creds)
+# 3) Plugin (needs ampersend CLI)
 echo "3/3 OpenClaw plugin (status)"
-if [[ -z "$ONECLAW_VAULT_ID" ]]; then
-  echo "  SKIP — set ONECLAW_VAULT_ID (and agent creds) to run"
+if command -v ampersend &>/dev/null; then
+  node "$SCRIPT_DIR/test-plugin-runner.mjs" status || exit 1
 else
-  if [[ -z "$ONECLAW_AGENT_ID" && -z "$ONECLAW_TOKEN" ]]; then
-    echo "  SKIP — set ONECLAW_AGENT_ID + ONECLAW_API_KEY, or ONECLAW_TOKEN"
-  else
-    node "$SCRIPT_DIR/test-plugin-runner.mjs" status || exit 1
-  fi
+  echo "  SKIP — ampersend CLI not installed (npm install -g @ampersend_ai/ampersend-sdk@0.0.16)"
 fi
 
 echo ""

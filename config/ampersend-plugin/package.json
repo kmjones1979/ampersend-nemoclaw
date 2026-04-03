@@ -1,0 +1,8 @@
+{
+  "name": "ampersend-openclaw-plugin",
+  "version": "0.1.0",
+  "private": true,
+  "openclaw": {
+    "extensions": ["./openclaw-ampersend-plugin.ts"]
+  }
+}

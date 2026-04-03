@@ -1,4 +1,4 @@
-# Testing the 1claw + OpenShell / NemoClaw setup
+# Testing the Ampersend + OpenShell / NemoClaw setup
 
 This guide walks through testing all three integration pieces **without** requiring a full OpenShell/NemoClaw install. You can then optionally apply the policy and run the agent inside a sandbox.
 
@@ -12,16 +12,16 @@ From repo root:
 npm test
 ```
 
-This runs: policy validation, blueprint dry-run (if `ONECLAW_*` set), and plugin status.
+This runs: policy validation, blueprint dry-run, and plugin status (if Ampersend CLI is installed).
 
-To run the **full setup in Docker** (create sandbox, install 1claw plugin and optional skills) on your Mac:
+To run the **full setup in Docker** (create sandbox, install Ampersend plugin and optional skills) on your Mac:
 
 ```bash
 openshell gateway start --plaintext   # on Mac, one-time
 npm run setup:docker
 ```
 
-Then connect with `openshell sandbox connect my-assistant` or `docker exec -it <container> bash` and run `openclaw 1claw status` inside.
+Then connect with `openshell sandbox connect my-assistant` or `docker exec -it <container> bash` and run `openclaw ampersend status` inside.
 
 ---
 
@@ -29,7 +29,7 @@ Then connect with `openshell sandbox connect my-assistant` or `docker exec -it <
 
 - **Node 18+** (for the OpenClaw plugin tests)
 - **Python 3.8+** and pip (for the NemoClaw blueprint)
-- **1claw credentials** (vault, agent, API key) from [1claw.xyz](https://1claw.xyz)
+- **Ampersend CLI** — `npm install -g @ampersend_ai/ampersend-sdk@0.0.16`
 
 Optional for full flow:
 
@@ -45,28 +45,33 @@ Optional for full flow:
 cd /path/to/1claw-nemoclaw
 
 # Node (for plugin tests)
-yarn install
-# or: npm install
+npm install
 
 # Python (for blueprint tests)
 pip install -r requirements.txt
+
+# Ampersend CLI (for agent payments)
+npm install -g @ampersend_ai/ampersend-sdk@0.0.16
 ```
 
 ---
 
-## 2. Set credentials (for blueprint + plugin tests)
+## 2. Set up Ampersend (for full integration tests)
 
 ```bash
-export ONECLAW_VAULT_ID="your-vault-id"
-export ONECLAW_AGENT_ID="your-agent-id"
-export ONECLAW_API_KEY="ocv_..."
+# Two-step setup
+ampersend setup start --name "test-agent"
+# Approve in browser...
+ampersend setup finish
+
+# Verify
+ampersend config status
 ```
 
-Or use a static JWT for the plugin only:
+Or set config manually:
 
 ```bash
-export ONECLAW_VAULT_ID="your-vault-id"
-export ONECLAW_TOKEN="eyJ..."   # short-lived JWT from 1claw
+ampersend config set "0xYourAgentKey:::0xYourSmartAccount"
 ```
 
 ---
@@ -76,98 +81,83 @@ export ONECLAW_TOKEN="eyJ..."   # short-lived JWT from 1claw
 ### All at once
 
 ```bash
-yarn test
-# or: npm test
+npm test
 ```
 
 This runs:
 
-1. **Policy** — validates `config/1claw-openshell-policy.yaml` (no creds needed).
-2. **Blueprint** — resolve + plan only (`--skip-apply`); skips if env vars missing.
-3. **Plugin** — `openclaw 1claw status` via the test runner; skips if creds missing.
+1. **Policy** — validates `config/ampersend-openshell-policy.yaml` (no CLI needed).
+2. **Blueprint** — resolve + plan only (`--skip-apply`); checks API reachability.
+3. **Plugin** — `openclaw ampersend status` via the test runner; skips if Ampersend CLI not installed.
 
 ### Individually
 
 ```bash
-# Policy only (no credentials)
-yarn test:policy
+# Policy only (no dependencies)
+npm run test:policy
 
-# Blueprint dry-run (needs ONECLAW_*)
-yarn test:blueprint
+# Blueprint dry-run
+npm run test:blueprint
 
-# Plugin status (needs ONECLAW_VAULT_ID + agent creds or ONECLAW_TOKEN)
-yarn test:plugin:status
-yarn test:plugin:help
+# Plugin status (needs Ampersend CLI)
+node scripts/test-plugin-runner.mjs status
+
+# Plugin help
+node scripts/test-plugin-runner.mjs help
+
+# Ampersend API test (needs Ampersend CLI)
+npm run test:ampersend
 ```
 
 ---
 
 ## 4. Plugin commands (standalone)
 
-From repo root, with credentials set:
+From repo root, with Ampersend CLI installed:
 
 ```bash
 # Help
 node scripts/test-plugin-runner.mjs help
 
-# Status (vault + MCP reachability)
+# Status (CLI config + API reachability)
 node scripts/test-plugin-runner.mjs status
 
-# List secrets (metadata only)
-node scripts/test-plugin-runner.mjs ls
-node scripts/test-plugin-runner.mjs ls "api-keys/"
+# Fetch with x402 payment
+node scripts/test-plugin-runner.mjs fetch https://example.com/paid-endpoint
 
-# Fetch a secret (prints value to stdout)
-node scripts/test-plugin-runner.mjs fetch "path/to/secret"
+# Inspect payment requirements
+node scripts/test-plugin-runner.mjs inspect https://example.com/paid-endpoint
 ```
 
-The same commands are available inside OpenClaw as `openclaw 1claw <command>` once the plugin is registered in your OpenClaw config.
+The same commands are available inside OpenClaw as `openclaw ampersend <command>` once the plugin is registered.
 
 ---
 
-## 5. Run NemoClaw in Docker and test 1claw inside the sandbox
-
-To run the agent inside a NemoClaw sandbox and use `openclaw 1claw` there:
+## 5. Run NemoClaw in Docker and test Ampersend inside the sandbox
 
 ### One-shot setup (recommended)
 
-On your Mac, from the **1claw-nemoclaw** repo root:
+On your Mac, from the repo root:
 
 ```bash
 openshell gateway start --plaintext   # one-time, on Mac
 npm run setup:docker
 ```
 
-This installs dependencies in a container, creates the sandbox, applies the 1claw policy, installs the 1claw plugin, and optionally installs OpenClaw skills from `config/skills-to-install.txt`. Then connect (see README Path 1 and Path 2).
+This creates the sandbox, applies the Ampersend policy, installs the CLI and plugin, and optionally installs skills from `config/skills-to-install.txt`.
 
-### Optional: interactive Docker shell
+### After setup
 
-For manual steps (e.g. without using the one-shot setup):
-
-```bash
-npm run nemoclaw:interactive
-# Inside container: register gateway, create sandbox, etc. See README.
-```
-
-### After setup: get the plugin in (if not using setup:docker)
-
-You need the 1claw OpenClaw plugin **inside** the sandbox and registered in OpenClaw’s config.
-
-- **If you can mount this repo** when creating the sandbox (e.g. bind-mount `1claw-nemoclaw` to `/sandbox/1claw-nemoclaw`), the plugin path in the sandbox is  
-  `/sandbox/1claw-nemoclaw/config/openclaw-1claw-plugin.ts`.
-- **Otherwise**, copy the plugin file into the sandbox (e.g. `docker cp config/openclaw-1claw-plugin.ts <container>:/sandbox/openclaw-1claw-plugin.ts`), then in OpenClaw config add:
-
-  `import oneclaw from "/sandbox/openclaw-1claw-plugin";` and include `oneclaw` in the `plugins` array.
-
-Then:
+Connect and test:
 
 ```bash
-nemoclaw my-assistant connect
-# inside the sandbox:
-export ONECLAW_VAULT_ID="<vault-id>" ONECLAW_AGENT_ID="<agent-id>" ONECLAW_API_KEY="ocv_..."
-openclaw 1claw status
-openclaw 1claw ls
-openclaw tui   # optional: chat with the agent
+docker exec -it <sandbox-container-id> bash
+# Inside the sandbox:
+ampersend config status
+ampersend setup start --name "my-assistant"   # if not yet set up
+ampersend fetch <x402-enabled-url>
+openclaw ampersend status
+openclaw tui
 ```
 
 ---
@@ -177,7 +167,7 @@ openclaw tui   # optional: chat with the agent
 If you have the OpenShell CLI installed:
 
 ```bash
-openshell policy set --sandbox <sandbox-name> --file config/1claw-openshell-policy.yaml
+openshell policy set --sandbox <sandbox-name> --file config/ampersend-openshell-policy.yaml
 openshell policy get --sandbox <sandbox-name>   # verify
 ```
 
@@ -185,14 +175,11 @@ openshell policy get --sandbox <sandbox-name>   # verify
 
 ## 7. Full blueprint (create/update sandbox)
 
-Without `--skip-apply`, the blueprint creates or updates the sandbox and applies the 1claw policy:
+Without `--skip-apply`, the blueprint creates or updates the sandbox and applies the Ampersend policy:
 
 ```bash
-python3 config/nemoclaw-1claw-blueprint.py \
-  --sandbox my-assistant \
-  --vault-id "$ONECLAW_VAULT_ID" \
-  --agent-id "$ONECLAW_AGENT_ID" \
-  --agent-api-key "$ONECLAW_API_KEY"
+python3 config/nemoclaw-ampersend-blueprint.py \
+  --sandbox my-assistant
 ```
 
 Then connect and test inside the sandbox:
@@ -200,9 +187,8 @@ Then connect and test inside the sandbox:
 ```bash
 nemoclaw my-assistant connect
 # inside sandbox:
-export ONECLAW_VAULT_ID=... ONECLAW_AGENT_ID=... ONECLAW_API_KEY=...
-openclaw 1claw status
-openclaw 1claw ls
+ampersend config status
+openclaw ampersend status
 ```
 
 ---
@@ -211,10 +197,10 @@ openclaw 1claw ls
 
 | Issue | What to check |
 |-------|----------------|
-| `ONECLAW_VAULT_ID is not set` | Export vault/agent/api-key (or ONECLAW_TOKEN) before running plugin or blueprint. |
-| `Auth failed: 401` | Wrong agent ID or API key; confirm in 1claw dashboard. |
+| `ampersend: command not found` | Install: `npm install -g @ampersend_ai/ampersend-sdk@0.0.16` |
+| `Ampersend not configured` | Run: `ampersend setup start --name <agent-name>`, approve, then `ampersend setup finish` |
 | `openshell: command not found` | Policy file test still passes; install OpenShell to apply policy or run sandbox. |
-| `tsx` not found when running plugin test | Run `yarn install` (tsx is a devDependency) or `npx tsx scripts/test-plugin-runner.ts status`. |
+| `tsx` not found when running plugin test | Run `npm install` (tsx is a devDependency) or `npx tsx scripts/test-plugin-runner.ts status`. |
 | Python `ModuleNotFoundError` | Run `pip install -r requirements.txt`. |
 
 ---
@@ -223,11 +209,12 @@ openclaw 1claw ls
 
 | File | Purpose |
 |------|--------|
-| `config/1claw-openshell-policy.yaml` | OpenShell network + FS policy (1claw + NVIDIA + npm/GitHub). |
-| `config/nemoclaw-1claw-blueprint.py` | NemoClaw blueprint: resolve → plan → apply → validate. |
-| `config/openclaw-1claw-plugin.ts` | OpenClaw plugin: `openclaw 1claw status/ls/fetch/put/...` |
+| `config/ampersend-openshell-policy.yaml` | OpenShell network + FS policy (Ampersend + NVIDIA + npm/GitHub). |
+| `config/nemoclaw-ampersend-blueprint.py` | NemoClaw blueprint: resolve -> plan -> apply -> validate. |
+| `config/openclaw-ampersend-plugin.ts` | OpenClaw plugin: `openclaw ampersend status/setup/fetch/inspect/...` |
+| `config/ampersend-plugin/` | Plugin bundle uploaded into sandboxes. |
 | `scripts/test-all.sh` | Runs policy + blueprint (dry-run) + plugin status. |
 | `scripts/test-openshell-policy.sh` | Validates policy YAML. |
 | `scripts/test-blueprint.sh` | Blueprint with `--skip-apply`. |
 | `scripts/test-plugin-runner.mjs` | Invokes the TS plugin via tsx for local testing. |
-| `scripts/setup-nemoclaw-in-docker.sh` | One-shot Docker setup: sandbox, policy, 1claw plugin, optional skills. |
+| `scripts/setup-nemoclaw-in-docker.sh` | One-shot Docker setup: sandbox, policy, Ampersend plugin, optional skills. |

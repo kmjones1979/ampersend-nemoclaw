@@ -11,8 +11,9 @@
 #   nemoclaw setup          # first time only (creates sandbox; may prompt for NVIDIA API key)
 #   nemoclaw my-assistant connect
 #   # inside sandbox:
-#   export ONECLAW_VAULT_ID=... ONECLAW_AGENT_ID=... ONECLAW_API_KEY=...
-#   openclaw 1claw status
+#   ampersend config status
+#   ampersend setup start --name my-assistant
+#   openclaw ampersend status
 #   openclaw tui
 
 set -e
@@ -35,12 +36,12 @@ fi
 echo "=============================================="
 echo "  Interactive NemoClaw (Ubuntu in Docker)"
 echo "=============================================="
-echo "  Repo:      $REPO_ROOT -> /workspace/1claw-nemoclaw"
+echo "  Repo:      $REPO_ROOT -> /workspace/ampersend-nemoclaw"
 echo "  Sandbox:   $SANDBOX_NAME"
 echo ""
 echo "  First time: run  nemoclaw onboard   (or nemoclaw setup; prompts for NVIDIA API key)"
 echo "  Then:       run  nemoclaw $SANDBOX_NAME connect"
-echo "  In sandbox: run  openclaw 1claw status   or   openclaw tui"
+echo "  In sandbox: run  openclaw ampersend status   or   openclaw tui"
 echo ""
 echo "  If gateway fails: on your Mac run  nemoclaw setup-spark  (or in Docker Desktop"
 echo "  add  \"default-cgroupns-mode\": \"host\"  to daemon.json and restart Docker)."
@@ -55,11 +56,10 @@ docker run --rm -it \
   --name 1claw-interactive \
   --cgroupns=host \
   -v "/var/run/docker.sock:/var/run/docker.sock" \
-  -v "$REPO_ROOT:/workspace/1claw-nemoclaw:ro" \
+  -v "$REPO_ROOT:/workspace/ampersend-nemoclaw:ro" \
   -e "SANDBOX_NAME=$SANDBOX_NAME" \
-  -e "ONECLAW_VAULT_ID=${ONECLAW_VAULT_ID:-}" \
-  -e "ONECLAW_AGENT_ID=${ONECLAW_AGENT_ID:-}" \
-  -e "ONECLAW_API_KEY=${ONECLAW_API_KEY:-}" \
+  -e "AMPERSEND_API_URL=${AMPERSEND_API_URL:-}" \
+  -e "AMPERSEND_NETWORK=${AMPERSEND_NETWORK:-}" \
   -e "NVIDIA_API_KEY=${NVIDIA_API_KEY:-}" \
   -w /workspace \
   ubuntu:24.04 \

@@ -1,12 +1,11 @@
 #!/usr/bin/env bash
-# Run the NemoClaw 1claw blueprint in dry-run mode (resolve + plan, no sandbox apply).
-# Set env vars: ONECLAW_VAULT_ID, ONECLAW_AGENT_ID, ONECLAW_API_KEY (or pass via flags).
+# Run the NemoClaw Ampersend blueprint in dry-run mode (resolve + plan, no sandbox apply).
 
 set -e
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
-BLUEPRINT="$REPO_ROOT/config/nemoclaw-1claw-blueprint.py"
-SANDBOX_NAME="${SANDBOX_NAME:-1claw-test-sandbox}"
+BLUEPRINT="$REPO_ROOT/config/nemoclaw-ampersend-blueprint.py"
+SANDBOX_NAME="${SANDBOX_NAME:-ampersend-test-sandbox}"
 
 echo "→ Testing NemoClaw blueprint (resolve + plan, --skip-apply)"
 echo "  Blueprint: $BLUEPRINT"
@@ -34,11 +33,8 @@ fi
 # Run blueprint with --skip-apply so we don't need OpenShell
 "$PYTHON" "$BLUEPRINT" \
   --sandbox "$SANDBOX_NAME" \
-  --vault-id "${ONECLAW_VAULT_ID:?Set ONECLAW_VAULT_ID}" \
-  --agent-id "${ONECLAW_AGENT_ID:?Set ONECLAW_AGENT_ID}" \
-  --agent-api-key "${ONECLAW_API_KEY:?Set ONECLAW_API_KEY}" \
   --skip-apply
 
 echo ""
 echo "Blueprint test (resolve + plan) finished. To apply to a real sandbox, run without --skip-apply:"
-echo "  python3 $BLUEPRINT --sandbox $SANDBOX_NAME --vault-id \$ONECLAW_VAULT_ID --agent-id \$ONECLAW_AGENT_ID --agent-api-key \$ONECLAW_API_KEY"
+echo "  python3 $BLUEPRINT --sandbox $SANDBOX_NAME"

@@ -1,27 +1,24 @@
 """
-nemoclaw-1claw-blueprint.py
+nemoclaw-ampersend-blueprint.py
 ────────────────────────────────────────────────────────────────
-NemoClaw Blueprint: 1claw Secret Management Integration
+NemoClaw Blueprint: Ampersend Agent Payments Integration
 
-Wires 1claw's HSM-backed vault into a NemoClaw / OpenShell sandbox
-so that the OpenClaw agent fetches credentials at runtime rather than
-receiving them through prompts or environment variables.
+Wires Ampersend's x402 payment capabilities into a NemoClaw /
+OpenShell sandbox so that the OpenClaw agent can make autonomous
+payments using smart account wallets.
 
 Stages
 ------
-1. resolve   — verify 1claw reachability and agent credentials
+1. resolve   — verify Ampersend CLI is configured and reachable
 2. plan      — build the OpenShell policy and inference config
-3. apply     — create/update the sandbox with the 1claw policy
-4. validate  — confirm the agent can reach the vault
+3. apply     — create/update the sandbox with the Ampersend policy
+4. validate  — confirm the agent can reach the Ampersend API
 
 Usage (inside NemoClaw):
-    nemoclaw setup --blueprint nemoclaw-1claw-blueprint.py
+    nemoclaw setup --blueprint nemoclaw-ampersend-blueprint.py
 
 Or standalone:
-    python3 nemoclaw-1claw-blueprint.py --sandbox my-assistant \
-        --vault-id <vault-id> \
-        --agent-id <agent-id> \
-        --agent-api-key ocv_...
+    python3 nemoclaw-ampersend-blueprint.py --sandbox my-assistant
 
 Requirements:
     pip install httpx pyyaml rich typer
@@ -52,15 +49,14 @@ except ImportError:
     )
     sys.exit(1)
 
-app = typer.Typer(help="NemoClaw blueprint: 1claw secret management integration")
+app = typer.Typer(help="NemoClaw blueprint: Ampersend agent payments integration")
 console = Console()
 
 # ── Constants ────────────────────────────────────────────────────────────────
 
-ONECLAW_BASE_URL = "https://api.1claw.xyz"
-ONECLAW_MCP_URL  = "https://mcp.1claw.xyz/mcp"
-POLICY_FILE      = Path("/tmp/1claw-openshell-policy.yaml")
-TIMEOUT          = 10  # seconds for HTTP calls
+AMPERSEND_API_URL = "https://api.ampersend.ai"
+POLICY_FILE       = Path("/tmp/ampersend-openshell-policy.yaml")
+TIMEOUT           = 10  # seconds for HTTP calls
 
 # ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -75,49 +71,38 @@ def run(cmd: list[str], check: bool = True, capture: bool = False) -> subprocess
     )
 
 
-def oneclaw_auth(agent_id: str, api_key: str) -> str:
+def ampersend_check_status(api_url: str) -> dict:
     """
-    Exchange an agent API key for a short-lived JWT.
-    Returns the bearer token string.
+    Check Ampersend API reachability and optionally check config status
+    via the CLI if available.
     """
-    resp = httpx.post(
-        f"{ONECLAW_BASE_URL}/v1/auth/agent-token",
-        json={"agent_id": agent_id, "api_key": api_key},
-        timeout=TIMEOUT,
-    )
-    resp.raise_for_status()
-    data = resp.json()
-    token = data.get("token") or data.get("access_token")
-    if not token:
-        raise RuntimeError(f"Unexpected auth response: {data}")
-    return token
+    result = {"api_reachable": False, "cli_configured": False, "details": {}}
 
+    try:
+        resp = httpx.get(f"{api_url}/api/health", timeout=TIMEOUT)
+        result["api_reachable"] = resp.status_code < 500
+    except Exception:
+        pass
 
-def oneclaw_list_secrets(token: str, vault_id: str) -> list[dict]:
-    """List secret metadata (paths and types, no values)."""
-    resp = httpx.get(
-        f"{ONECLAW_BASE_URL}/v1/vaults/{vault_id}/secrets",
-        headers={"Authorization": f"Bearer {token}"},
-        timeout=TIMEOUT,
-    )
-    resp.raise_for_status()
-    return resp.json().get("secrets", [])
+    try:
+        proc = subprocess.run(
+            ["ampersend", "config", "status"],
+            capture_output=True, text=True, timeout=10,
+        )
+        if proc.returncode == 0:
+            data = json.loads(proc.stdout)
+            if data.get("ok"):
+                result["cli_configured"] = True
+                result["details"] = data.get("data", {})
+    except Exception:
+        pass
 
-
-def oneclaw_get_secret(token: str, vault_id: str, path: str) -> str:
-    """Fetch the decrypted value of a secret by path."""
-    resp = httpx.get(
-        f"{ONECLAW_BASE_URL}/v1/vaults/{vault_id}/secrets/{path.lstrip('/')}",
-        headers={"Authorization": f"Bearer {token}"},
-        timeout=TIMEOUT,
-    )
-    resp.raise_for_status()
-    return resp.json()["value"]
+    return result
 
 
 def build_policy(extra_binaries: list[str] | None = None) -> dict:
     """
-    Build the OpenShell policy dict that allows egress to 1claw
+    Build the OpenShell policy dict that allows egress to Ampersend
     endpoints. Merges any extra binary paths the caller provides.
     """
     base_binaries = [
@@ -141,33 +126,29 @@ def build_policy(extra_binaries: list[str] | None = None) -> dict:
         "landlock": {"compatibility": "best_effort"},
         "process": {"run_as_user": "sandbox", "run_as_group": "sandbox"},
         "network_policies": {
-            "oneclaw_vault_api": {
-                "name": "1claw-vault-api",
+            "ampersend_api": {
+                "name": "ampersend-api",
                 "endpoints": [
                     {
-                        "host": "api.1claw.xyz",
+                        "host": "api.ampersend.ai",
                         "port": 443,
                         "protocol": "rest",
                         "tls": "terminate",
                         "enforcement": "enforce",
                         "rules": [
-                            {"allow": {"method": "POST", "path": "/v1/auth/agent-token"}},
-                            {"allow": {"method": "GET",  "path": "/v1/vaults"}},
-                            {"allow": {"method": "GET",  "path": "/v1/vaults/**"}},
-                            {"allow": {"method": "GET",  "path": "/v1/vaults/*/secrets/**"}},
-                            {"allow": {"method": "POST", "path": "/v1/vaults/*/secrets/**"}},
-                            {"allow": {"method": "PUT",  "path": "/v1/vaults/*/secrets/**"}},
-                            {"allow": {"method": "DELETE", "path": "/v1/vaults/*/secrets/**"}},
+                            {"allow": {"method": "POST", "path": "/api/**"}},
+                            {"allow": {"method": "GET",  "path": "/api/**"}},
+                            {"allow": {"method": "PUT",  "path": "/api/**"}},
                         ],
                     }
                 ],
                 "binaries": base_binaries,
             },
-            "oneclaw_mcp_hosted": {
-                "name": "1claw-mcp-hosted",
+            "ampersend_staging_api": {
+                "name": "ampersend-staging-api",
                 "endpoints": [
                     {
-                        "host": "mcp.1claw.xyz",
+                        "host": "api.staging.ampersend.ai",
                         "port": 443,
                         "protocol": "rest",
                         "tls": "terminate",
@@ -177,19 +158,32 @@ def build_policy(extra_binaries: list[str] | None = None) -> dict:
                 ],
                 "binaries": base_binaries,
             },
-            "oneclaw_shroud": {
-                "name": "1claw-shroud-tee-proxy",
+            "base_rpc": {
+                "name": "base-blockchain-rpc",
                 "endpoints": [
                     {
-                        "host": "shroud.1claw.xyz",
+                        "host": "mainnet.base.org",
                         "port": 443,
                         "protocol": "rest",
                         "tls": "terminate",
                         "enforcement": "enforce",
                         "access": "read-write",
-                    }
+                    },
+                    {
+                        "host": "sepolia.base.org",
+                        "port": 443,
+                        "protocol": "rest",
+                        "tls": "terminate",
+                        "enforcement": "enforce",
+                        "access": "read-write",
+                    },
                 ],
-                "binaries": base_binaries,
+                "binaries": [
+                    {"path": "/usr/local/bin/openclaw"},
+                    {"path": "/usr/bin/node"},
+                    {"path": "/usr/bin/npx"},
+                    {"path": "/sandbox/.local/bin/**"},
+                ],
             },
             "nvidia_inference": {
                 "name": "nvidia-cloud-inference",
@@ -215,43 +209,34 @@ def build_policy(extra_binaries: list[str] | None = None) -> dict:
 
 # ── Blueprint stages ─────────────────────────────────────────────────────────
 
-def stage_resolve(agent_id: str, api_key: str, vault_id: str) -> str:
-    """Stage 1 — verify 1claw reachability and auth."""
+def stage_resolve(api_url: str) -> dict:
+    """Stage 1 — verify Ampersend reachability and config."""
     console.rule("[bold cyan]Stage 1 · Resolve[/bold cyan]")
 
-    with console.status("Contacting 1claw auth endpoint…"):
-        try:
-            token = oneclaw_auth(agent_id, api_key)
-        except httpx.HTTPStatusError as e:
-            console.print(f"[red]Auth failed: {e.response.status_code} {e.response.text}[/red]")
-            raise typer.Exit(1)
-        except Exception as e:
-            console.print(f"[red]Auth error: {e}[/red]")
-            raise typer.Exit(1)
+    with console.status("Checking Ampersend API and CLI status…"):
+        status = ampersend_check_status(api_url)
 
-    console.print("[green]✓ Agent authenticated — short-lived JWT obtained[/green]")
+    if status["api_reachable"]:
+        console.print("[green]✓ Ampersend API reachable[/green]")
+    else:
+        console.print("[yellow]⚠ Ampersend API not reachable (agent may still work via CLI)[/yellow]")
 
-    with console.status("Listing vault secrets (metadata check)…"):
-        try:
-            secrets = oneclaw_list_secrets(token, vault_id)
-        except httpx.HTTPStatusError as e:
-            console.print(f"[red]Vault listing failed: {e.response.status_code}[/red]")
-            raise typer.Exit(1)
+    if status["cli_configured"]:
+        details = status["details"]
+        table = Table(title="Ampersend Agent Configuration", show_lines=True)
+        table.add_column("Key", style="cyan")
+        table.add_column("Value")
+        for k, v in details.items():
+            table.add_row(k, str(v))
+        console.print(table)
+        console.print("[green]✓ Ampersend CLI configured[/green]")
+    else:
+        console.print("[yellow]⚠ Ampersend CLI not configured — run 'ampersend setup start' in the sandbox[/yellow]")
 
-    table = Table(title=f"Vault {vault_id} — {len(secrets)} secrets found", show_lines=True)
-    table.add_column("Path", style="cyan")
-    table.add_column("Type")
-    table.add_column("Version")
-    for s in secrets[:10]:
-        table.add_row(s.get("path", "?"), s.get("type", "?"), str(s.get("version", "?")))
-    if len(secrets) > 10:
-        table.add_row(f"… and {len(secrets) - 10} more", "", "")
-    console.print(table)
-
-    return token
+    return status
 
 
-def stage_plan(token: str) -> dict:
+def stage_plan(status: dict) -> dict:
     """Stage 2 — build the OpenShell policy."""
     console.rule("[bold cyan]Stage 2 · Plan[/bold cyan]")
     policy = build_policy()
@@ -269,7 +254,6 @@ def stage_apply(sandbox: str) -> None:
     """Stage 3 — apply the policy to the OpenShell sandbox."""
     console.rule("[bold cyan]Stage 3 · Apply[/bold cyan]")
 
-    # Check whether the sandbox already exists
     result = run(
         ["openshell", "sandbox", "list", "--output", "json"],
         check=False,
@@ -298,31 +282,30 @@ def stage_apply(sandbox: str) -> None:
             "--file", str(POLICY_FILE),
         ])
 
-    console.print("[green]✓ OpenShell sandbox configured with 1claw egress policy[/green]")
+    console.print("[green]✓ OpenShell sandbox configured with Ampersend egress policy[/green]")
 
 
-def stage_validate(token: str, vault_id: str, sandbox: str) -> None:
-    """Stage 4 — smoke-test: confirm the agent can reach the vault."""
+def stage_validate(api_url: str, sandbox: str) -> None:
+    """Stage 4 — smoke-test: confirm the agent can reach Ampersend."""
     console.rule("[bold cyan]Stage 4 · Validate[/bold cyan]")
 
-    # Quick reachability check from outside the sandbox
-    with console.status("Verifying vault connectivity…"):
+    with console.status("Verifying Ampersend connectivity…"):
         try:
-            secrets = oneclaw_list_secrets(token, vault_id)
-            console.print(f"[green]✓ Vault reachable — {len(secrets)} secrets accessible[/green]")
+            resp = httpx.get(f"{api_url}/api/health", timeout=TIMEOUT)
+            console.print(f"[green]✓ Ampersend API reachable (HTTP {resp.status_code})[/green]")
         except Exception as e:
-            console.print(f"[yellow]⚠ Vault check failed: {e}[/yellow]")
+            console.print(f"[yellow]⚠ Ampersend API check failed: {e}[/yellow]")
 
     console.print(Panel(
         f"""
 Sandbox:   [bold]{sandbox}[/bold]
-Vault:     [bold]{vault_id}[/bold]
 Policy:    {POLICY_FILE}
 
 [bold]Next steps:[/bold]
   nemoclaw {sandbox} connect
-  sandbox@{sandbox}:~$ openclaw 1claw status
-  sandbox@{sandbox}:~$ openclaw 1claw fetch api-keys/my-key
+  sandbox@{sandbox}:~$ ampersend config status
+  sandbox@{sandbox}:~$ ampersend setup start --name "{sandbox}"
+  sandbox@{sandbox}:~$ ampersend fetch <x402-enabled-url>
 """,
         title="[green]✓ Blueprint applied successfully[/green]",
         border_style="green",
@@ -334,33 +317,32 @@ Policy:    {POLICY_FILE}
 @app.command()
 def main(
     sandbox: str = typer.Option(..., help="OpenShell sandbox name"),
-    vault_id: str = typer.Option(..., envvar="ONECLAW_VAULT_ID", help="1claw vault ID"),
-    agent_id: str = typer.Option(..., envvar="ONECLAW_AGENT_ID", help="1claw agent ID"),
-    agent_api_key: str = typer.Option(
-        ..., envvar="ONECLAW_API_KEY", help="1claw agent API key (ocv_…)"
+    api_url: str = typer.Option(
+        AMPERSEND_API_URL, envvar="AMPERSEND_API_URL",
+        help="Ampersend API URL"
     ),
     skip_apply: bool = typer.Option(False, help="Plan only — do not touch the sandbox"),
 ) -> None:
     """
-    NemoClaw blueprint that wires 1claw into an OpenShell sandbox.
+    NemoClaw blueprint that wires Ampersend into an OpenShell sandbox.
 
     Runs four stages: resolve → plan → apply → validate.
     """
     console.print(Panel(
-        "[bold]NemoClaw × 1claw Blueprint[/bold]\n"
-        "HSM-backed secrets + OpenShell isolation",
+        "[bold]NemoClaw × Ampersend Blueprint[/bold]\n"
+        "x402 agent payments + OpenShell isolation",
         border_style="cyan",
     ))
 
-    token = stage_resolve(agent_id, agent_api_key, vault_id)
-    stage_plan(token)
+    status = stage_resolve(api_url)
+    stage_plan(status)
 
     if not skip_apply:
         stage_apply(sandbox)
     else:
         console.print("[yellow]--skip-apply set; sandbox not modified[/yellow]")
 
-    stage_validate(token, vault_id, sandbox)
+    stage_validate(api_url, sandbox)
 
 
 if __name__ == "__main__":

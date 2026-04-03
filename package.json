@@ -1,18 +1,16 @@
 {
-  "name": "1claw-nemoclaw",
+  "name": "ampersend-nemoclaw",
   "version": "0.1.0",
   "private": true,
-  "description": "1claw integration for OpenShell / NemoClaw",
+  "description": "Ampersend agent payments integration for OpenShell / NemoClaw",
   "scripts": {
     "test": "bash scripts/test-all.sh",
     "test:policy": "bash scripts/test-openshell-policy.sh",
-    "test:1claw": "bash scripts/test-1claw-api.sh",
+    "test:ampersend": "bash scripts/test-ampersend-api.sh",
     "test:blueprint": "bash scripts/test-blueprint.sh",
     "test:plugin": "node scripts/test-plugin-runner.mjs",
     "setup:docker": "bash scripts/setup-nemoclaw-in-docker.sh",
-    "gateway:start": "bash scripts/start-gateway.sh",
-    "connect": "bash scripts/connect.sh",
-    "plugin:upload": "bash scripts/upload-1claw-plugin-to-sandbox.sh",
+    "plugin:upload": "bash scripts/upload-ampersend-plugin-to-sandbox.sh",
     "nemoclaw:interactive": "bash scripts/nemoclaw-interactive.sh"
   },
   "devDependencies": {

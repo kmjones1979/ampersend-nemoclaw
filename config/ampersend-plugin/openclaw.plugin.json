@@ -1,0 +1,9 @@
+{
+  "id": "ampersend",
+  "name": "ampersend",
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {}
+  }
+}

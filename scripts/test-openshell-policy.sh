@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
-# Validate 1claw OpenShell policy YAML (syntax + structure).
+# Validate Ampersend OpenShell policy YAML (syntax + structure).
 # Optional: if 'openshell' CLI is installed, run: openshell policy validate
 
 set -e
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
-POLICY="$REPO_ROOT/config/1claw-openshell-policy.yaml"
+POLICY="$REPO_ROOT/config/ampersend-openshell-policy.yaml"
 
 echo "→ Validating OpenShell policy: $POLICY"
 if [[ ! -f "$POLICY" ]]; then
@@ -14,10 +14,10 @@ if [[ ! -f "$POLICY" ]]; then
 fi
 
 # Basic YAML check (optional: use a YAML parser; here we only check it's readable and has key fields)
-if grep -q "version:" "$POLICY" && grep -q "network_policies:" "$POLICY" && grep -q "api.1claw.xyz" "$POLICY"; then
-  echo "  ✓ YAML structure looks valid (version, network_policies, 1claw endpoints present)"
+if grep -q "version:" "$POLICY" && grep -q "network_policies:" "$POLICY" && grep -q "api.ampersend.ai" "$POLICY"; then
+  echo "  ✓ YAML structure looks valid (version, network_policies, Ampersend endpoints present)"
 else
-  echo "  ERROR: Policy missing expected keys (version, network_policies, api.1claw.xyz)"
+  echo "  ERROR: Policy missing expected keys (version, network_policies, api.ampersend.ai)"
   exit 1
 fi
 
