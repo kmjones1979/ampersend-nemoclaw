@@ -52,6 +52,13 @@ tmp/
 temp/
 /tmp/
 
+# Cursor / Claude Code
+.cursor/
+.cursorindexingignore
+
+# ampersend local config
+.ampersend/
+
 # Optional: lockfiles (uncomment if you want to ignore)
 # package-lock.json
 # yarn.lock

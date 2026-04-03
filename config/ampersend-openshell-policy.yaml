@@ -1,7 +1,7 @@
-# Ampersend OpenShell Integration Policy
+# ampersend OpenShell Integration Policy
 # ============================================================
 # Drop this file into your OpenShell sandbox to allow agents
-# to make x402 payments via Ampersend at runtime while keeping
+# to make x402 payments via ampersend at runtime while keeping
 # all other egress locked down.
 #
 # Apply:  openshell policy set --sandbox <name> --file ampersend-openshell-policy.yaml
@@ -43,9 +43,9 @@ process:
 # Each entry: which binaries may reach which endpoints.
 network_policies:
 
-  # ── Ampersend API ───────────────────────────────────────
+  # ── ampersend API ───────────────────────────────────────
   # Agents authenticate, set up smart accounts, and make
-  # x402 payments via the Ampersend API.
+  # x402 payments via the ampersend API.
   ampersend_api:
     name: ampersend-api
     endpoints:
@@ -72,7 +72,7 @@ network_policies:
       - path: /sandbox/.vscode-server/**
       - path: /sandbox/.local/bin/**
 
-  # ── Ampersend Staging API (optional) ────────────────────
+  # ── ampersend Staging API (optional) ────────────────────
   # For development/testing against the staging environment.
   ampersend_staging_api:
     name: ampersend-staging-api

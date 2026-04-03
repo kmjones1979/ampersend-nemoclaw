@@ -1,4 +1,4 @@
-# Testing the Ampersend + OpenShell / NemoClaw setup
+# Testing the ampersend + OpenShell / NemoClaw setup
 
 This guide walks through testing all three integration pieces **without** requiring a full OpenShell/NemoClaw install. You can then optionally apply the policy and run the agent inside a sandbox.
 
@@ -12,9 +12,9 @@ From repo root:
 npm test
 ```
 
-This runs: policy validation, blueprint dry-run, and plugin status (if Ampersend CLI is installed).
+This runs: policy validation, blueprint dry-run, and plugin status (if ampersend CLI is installed).
 
-To run the **full setup in Docker** (create sandbox, install Ampersend plugin and optional skills) on your Mac:
+To run the **full setup in Docker** (create sandbox, install ampersend plugin and optional skills) on your Mac:
 
 ```bash
 openshell gateway start --plaintext   # on Mac, one-time
@@ -29,7 +29,7 @@ Then connect with `openshell sandbox connect my-assistant` or `docker exec -it <
 
 - **Node 18+** (for the OpenClaw plugin tests)
 - **Python 3.8+** and pip (for the NemoClaw blueprint)
-- **Ampersend CLI** — `npm install -g @ampersend_ai/ampersend-sdk@0.0.16`
+- **ampersend CLI** — `npm install -g @ampersend_ai/ampersend-sdk@0.0.16`
 
 Optional for full flow:
 
@@ -50,13 +50,13 @@ npm install
 # Python (for blueprint tests)
 pip install -r requirements.txt
 
-# Ampersend CLI (for agent payments)
+# ampersend CLI (for agent payments)
 npm install -g @ampersend_ai/ampersend-sdk@0.0.16
 ```
 
 ---
 
-## 2. Set up Ampersend (for full integration tests)
+## 2. Set up ampersend (for full integration tests)
 
 ```bash
 # Two-step setup
@@ -88,7 +88,7 @@ This runs:
 
 1. **Policy** — validates `config/ampersend-openshell-policy.yaml` (no CLI needed).
 2. **Blueprint** — resolve + plan only (`--skip-apply`); checks API reachability.
-3. **Plugin** — `openclaw ampersend status` via the test runner; skips if Ampersend CLI not installed.
+3. **Plugin** — `openclaw ampersend status` via the test runner; skips if ampersend CLI not installed.
 
 ### Individually
 
@@ -99,13 +99,13 @@ npm run test:policy
 # Blueprint dry-run
 npm run test:blueprint
 
-# Plugin status (needs Ampersend CLI)
+# Plugin status (needs ampersend CLI)
 node scripts/test-plugin-runner.mjs status
 
 # Plugin help
 node scripts/test-plugin-runner.mjs help
 
-# Ampersend API test (needs Ampersend CLI)
+# ampersend API test (needs ampersend CLI)
 npm run test:ampersend
 ```
 
@@ -113,7 +113,7 @@ npm run test:ampersend
 
 ## 4. Plugin commands (standalone)
 
-From repo root, with Ampersend CLI installed:
+From repo root, with ampersend CLI installed:
 
 ```bash
 # Help
@@ -133,7 +133,7 @@ The same commands are available inside OpenClaw as `openclaw ampersend <command>
 
 ---
 
-## 5. Run NemoClaw in Docker and test Ampersend inside the sandbox
+## 5. Run NemoClaw in Docker and test ampersend inside the sandbox
 
 ### One-shot setup (recommended)
 
@@ -144,7 +144,7 @@ openshell gateway start --plaintext   # one-time, on Mac
 npm run setup:docker
 ```
 
-This creates the sandbox, applies the Ampersend policy, installs the CLI and plugin, and optionally installs skills from `config/skills-to-install.txt`.
+This creates the sandbox, applies the ampersend policy, installs the CLI and plugin, and optionally installs skills from `config/skills-to-install.txt`.
 
 ### After setup
 
@@ -175,7 +175,7 @@ openshell policy get --sandbox <sandbox-name>   # verify
 
 ## 7. Full blueprint (create/update sandbox)
 
-Without `--skip-apply`, the blueprint creates or updates the sandbox and applies the Ampersend policy:
+Without `--skip-apply`, the blueprint creates or updates the sandbox and applies the ampersend policy:
 
 ```bash
 python3 config/nemoclaw-ampersend-blueprint.py \
@@ -198,7 +198,7 @@ openclaw ampersend status
 | Issue | What to check |
 |-------|----------------|
 | `ampersend: command not found` | Install: `npm install -g @ampersend_ai/ampersend-sdk@0.0.16` |
-| `Ampersend not configured` | Run: `ampersend setup start --name <agent-name>`, approve, then `ampersend setup finish` |
+| `ampersend not configured` | Run: `ampersend setup start --name <agent-name>`, approve, then `ampersend setup finish` |
 | `openshell: command not found` | Policy file test still passes; install OpenShell to apply policy or run sandbox. |
 | `tsx` not found when running plugin test | Run `npm install` (tsx is a devDependency) or `npx tsx scripts/test-plugin-runner.ts status`. |
 | Python `ModuleNotFoundError` | Run `pip install -r requirements.txt`. |
@@ -209,7 +209,7 @@ openclaw ampersend status
 
 | File | Purpose |
 |------|--------|
-| `config/ampersend-openshell-policy.yaml` | OpenShell network + FS policy (Ampersend + NVIDIA + npm/GitHub). |
+| `config/ampersend-openshell-policy.yaml` | OpenShell network + FS policy (ampersend + NVIDIA + npm/GitHub). |
 | `config/nemoclaw-ampersend-blueprint.py` | NemoClaw blueprint: resolve -> plan -> apply -> validate. |
 | `config/openclaw-ampersend-plugin.ts` | OpenClaw plugin: `openclaw ampersend status/setup/fetch/inspect/...` |
 | `config/ampersend-plugin/` | Plugin bundle uploaded into sandboxes. |
@@ -217,4 +217,4 @@ openclaw ampersend status
 | `scripts/test-openshell-policy.sh` | Validates policy YAML. |
 | `scripts/test-blueprint.sh` | Blueprint with `--skip-apply`. |
 | `scripts/test-plugin-runner.mjs` | Invokes the TS plugin via tsx for local testing. |
-| `scripts/setup-nemoclaw-in-docker.sh` | One-shot Docker setup: sandbox, policy, Ampersend plugin, optional skills. |
+| `scripts/setup-nemoclaw-in-docker.sh` | One-shot Docker setup: sandbox, policy, ampersend plugin, optional skills. |

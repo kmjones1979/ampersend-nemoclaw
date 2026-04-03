@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Upload the Ampersend OpenClaw plugin bundle to a running sandbox so you can install it
+# Upload the ampersend OpenClaw plugin bundle to a running sandbox so you can install it
 # with: openclaw plugins install /sandbox/ampersend-plugin
 #
 # Usage: ./scripts/upload-ampersend-plugin-to-sandbox.sh [sandbox-name]
@@ -21,7 +21,7 @@ if ! command -v openshell &>/dev/null; then
   exit 1
 fi
 
-echo "Uploading Ampersend plugin bundle to sandbox '$SANDBOX_NAME' at /sandbox/ampersend-plugin ..."
+echo "Uploading ampersend plugin bundle to sandbox '$SANDBOX_NAME' at /sandbox/ampersend-plugin ..."
 openshell sandbox upload "$SANDBOX_NAME" "$BUNDLE" /sandbox/ampersend-plugin
 
 echo ""

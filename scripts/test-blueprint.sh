@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Run the NemoClaw Ampersend blueprint in dry-run mode (resolve + plan, no sandbox apply).
+# Run the NemoClaw ampersend blueprint in dry-run mode (resolve + plan, no sandbox apply).
 
 set -e
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

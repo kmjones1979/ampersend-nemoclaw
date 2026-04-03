@@ -1,5 +1,5 @@
 /**
- * Test runner for the Ampersend OpenClaw plugin.
+ * Test runner for the ampersend OpenClaw plugin.
  * Run without OpenClaw: npx tsx scripts/test-plugin-runner.ts <command> [args...]
  */
 

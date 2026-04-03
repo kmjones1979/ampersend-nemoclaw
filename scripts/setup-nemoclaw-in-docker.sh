@@ -26,7 +26,7 @@ if [[ -z "$NVIDIA_API_KEY" ]]; then
 fi
 
 echo "=============================================="
-echo "  Ampersend × NemoClaw in Docker (one-shot)"
+echo "  ampersend × NemoClaw in Docker (one-shot)"
 echo "=============================================="
 echo "  Sandbox name: $SANDBOX_NAME"
 echo "  Repo:         $REPO_ROOT"
@@ -95,14 +95,14 @@ docker run --rm \
       openshell policy set --policy /workspace/ampersend-nemoclaw/config/ampersend-openshell-policy.yaml "$SANDBOX_NAME" 2>/dev/null || true
     fi
 
-    echo "[6/7] Installing Ampersend CLI and uploading plugin..."
-    # Install Ampersend CLI globally in the sandbox
+    echo "[6/7] Installing ampersend CLI and uploading plugin..."
+    # Install ampersend CLI globally in the sandbox
     printf "npm install -g @ampersend_ai/ampersend-sdk@0.0.16 2>/dev/null || true; exit\n" | openshell sandbox connect "$SANDBOX_NAME" 2>/dev/null || true
 
     if [[ -d /workspace/ampersend-nemoclaw/config/ampersend-plugin ]]; then
       openshell sandbox upload "$SANDBOX_NAME" /workspace/ampersend-nemoclaw/config/ampersend-plugin /sandbox/ampersend-plugin 2>/dev/null || true
       printf "openclaw plugins install /sandbox/ampersend-plugin 2>/dev/null; exit\n" | openshell sandbox connect "$SANDBOX_NAME" 2>/dev/null || true
-      echo "  Ampersend plugin uploaded and installed."
+      echo "  ampersend plugin uploaded and installed."
     else
       echo "  (config/ampersend-plugin not found; skip plugin install)"
     fi

@@ -1,8 +1,8 @@
-# Ampersend × OpenShell / NemoClaw
+# ampersend × OpenShell / NemoClaw
 
-Use [Ampersend](https://github.com/edgeandnode/ampersend-sdk) for agent payments inside [NemoClaw](https://github.com/NVIDIA/NemoClaw) sandboxes. This repo has the config (policy, plugin, blueprint) and two ways to use it: **run NemoClaw in Docker** and **connect from your Mac**.
+Use [ampersend](https://github.com/edgeandnode/ampersend-sdk) for agent payments inside [NemoClaw](https://github.com/NVIDIA/NemoClaw) sandboxes. This repo has the config (policy, plugin, blueprint) and two ways to use it: **run NemoClaw in Docker** and **connect from your Mac**.
 
-Ampersend enables autonomous agent payments using smart account wallets and the [x402 protocol](https://github.com/coinbase/x402). Agents can make payments within user-defined spending limits without requiring human approval for each transaction.
+ampersend enables autonomous agent payments using smart account wallets and the [x402 protocol](https://github.com/coinbase/x402). Agents can make payments within user-defined spending limits without requiring human approval for each transaction.
 
 ---
 
@@ -27,7 +27,7 @@ Set in `.env`:
 | Variable           | Required | Description                         |
 | ------------------ | -------- | ----------------------------------- |
 | NVIDIA\_API\_KEY   | Yes      | NVIDIA API key for NemoClaw         |
-| AMPERSEND\_API\_URL | Optional | Override Ampersend API URL          |
+| AMPERSEND\_API\_URL | Optional | Override ampersend API URL          |
 | AMPERSEND\_NETWORK | Optional | Network: `base` or `base-sepolia`   |
 
 ### 2. Start the gateway
@@ -48,9 +48,9 @@ This single command:
 
 * Installs OpenShell, Node.js, and NemoClaw in a temporary Docker container
 * Registers the gateway and creates a sandbox (`my-assistant`)
-* Applies the Ampersend OpenShell policy
-* Installs the Ampersend CLI (`@ampersend_ai/ampersend-sdk`)
-* Uploads and installs the Ampersend OpenClaw plugin
+* Applies the ampersend OpenShell policy
+* Installs the ampersend CLI (`@ampersend_ai/ampersend-sdk`)
+* Uploads and installs the ampersend OpenClaw plugin
 * Installs any skills listed in `config/skills-to-install.txt`
 
 ### 4. Connect to the sandbox
@@ -66,7 +66,7 @@ docker ps
 docker exec -it <sandbox-container-id> bash
 ```
 
-### 5. Set up Ampersend
+### 5. Set up ampersend
 
 Inside the sandbox:
 
@@ -162,7 +162,7 @@ openshell sandbox list
 nemoclaw my-assistant connect
 ```
 
-If no sandbox exists, create it and apply the Ampersend policy:
+If no sandbox exists, create it and apply the ampersend policy:
 
 ```bash
 openshell sandbox create --name my-assistant --from openclaw
@@ -170,7 +170,7 @@ openshell policy set --policy /workspace/ampersend-nemoclaw/config/ampersend-ope
 nemoclaw my-assistant connect
 ```
 
-### 1.5 Use Ampersend in the sandbox
+### 1.5 Use ampersend in the sandbox
 
 You're now inside the sandbox. Install the CLI and configure:
 
@@ -192,7 +192,7 @@ openclaw tui
 
 ### 1.6 If `openclaw ampersend` says "unknown command"
 
-The openclaw community image does not include the Ampersend plugin by default. **If you used `npm run setup:docker`**, the plugin is uploaded and installed automatically, so you can skip this.
+The openclaw community image does not include the ampersend plugin by default. **If you used `npm run setup:docker`**, the plugin is uploaded and installed automatically, so you can skip this.
 
 If you created the sandbox manually:
 
@@ -243,9 +243,9 @@ Install the CLI from [NVIDIA/NemoClaw](https://github.com/NVIDIA/NemoClaw), then
 
 ---
 
-## Ampersend setup (agent payments)
+## ampersend setup (agent payments)
 
-Ampersend lets agents make payments via smart account wallets with automatic x402 payment handling. It is bundled as a skill in the OpenClaw plugin.
+ampersend lets agents make payments via smart account wallets with automatic x402 payment handling. It is bundled as a skill in the OpenClaw plugin.
 
 ### Install the CLI (inside the sandbox)
 
@@ -320,9 +320,9 @@ ampersend config set "0xagentKey:::0xagentAccount"
 
 | Path | Description |
 |------|-------------|
-| **config/ampersend-openshell-policy.yaml** | OpenShell policy (Ampersend, NVIDIA, npm, GitHub). |
+| **config/ampersend-openshell-policy.yaml** | OpenShell policy (ampersend, NVIDIA, npm, GitHub). |
 | **config/openclaw-ampersend-plugin.ts** | OpenClaw plugin: `openclaw ampersend status`, `setup`, `fetch`, `inspect`, etc. |
-| **config/nemoclaw-ampersend-blueprint.py** | Blueprint to apply Ampersend policy to a sandbox. |
+| **config/nemoclaw-ampersend-blueprint.py** | Blueprint to apply ampersend policy to a sandbox. |
 | **config/ampersend-plugin/** | Plugin bundle uploaded into sandboxes. |
 | **config/skills-to-install.txt** | Skills to auto-install during setup. |
 
@@ -340,14 +340,14 @@ ampersend config set "0xagentKey:::0xagentAccount"
 
 | Command | Description |
 |--------|-------------|
-| `npm run setup:docker` | One-shot: install, gateway, create sandbox, apply Ampersend policy, install CLI + plugin + skills. |
-| `npm run plugin:upload` | Upload the Ampersend plugin bundle to the sandbox. |
+| `npm run setup:docker` | One-shot: install, gateway, create sandbox, apply ampersend policy, install CLI + plugin + skills. |
+| `npm run plugin:upload` | Upload the ampersend plugin bundle to the sandbox. |
 | `npm run nemoclaw:interactive` | Start an interactive Docker shell for manual NemoClaw steps. |
 | `npm test` | Run tests (policy, blueprint, plugin). |
-| `npm run test:ampersend` | Test Ampersend CLI config and API reachability. |
+| `npm run test:ampersend` | Test ampersend CLI config and API reachability. |
 
 ---
 
 ## Links
 
-- [Ampersend SDK](https://github.com/edgeandnode/ampersend-sdk) · [x402 Protocol](https://github.com/coinbase/x402) · [OpenShell](https://docs.nvidia.com/openshell/latest/) · [NemoClaw](https://docs.nvidia.com/nemoclaw/latest/get-started/quickstart.html) · [Testing guide](scripts/README-TESTING.md)
+- [ampersend SDK](https://github.com/edgeandnode/ampersend-sdk) · [ampersend CLI reference](https://www.ampersend.ai/skill.md) · [x402 Protocol](https://github.com/coinbase/x402) · [OpenShell](https://docs.nvidia.com/openshell/latest/) · [NemoClaw](https://docs.nvidia.com/nemoclaw/latest/get-started/quickstart.html) · [Testing guide](scripts/README-TESTING.md)

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Validate Ampersend OpenShell policy YAML (syntax + structure).
+# Validate ampersend OpenShell policy YAML (syntax + structure).
 # Optional: if 'openshell' CLI is installed, run: openshell policy validate
 
 set -e
@@ -15,7 +15,7 @@ fi
 
 # Basic YAML check (optional: use a YAML parser; here we only check it's readable and has key fields)
 if grep -q "version:" "$POLICY" && grep -q "network_policies:" "$POLICY" && grep -q "api.ampersend.ai" "$POLICY"; then
-  echo "  ✓ YAML structure looks valid (version, network_policies, Ampersend endpoints present)"
+  echo "  ✓ YAML structure looks valid (version, network_policies, ampersend endpoints present)"
 else
   echo "  ERROR: Policy missing expected keys (version, network_policies, api.ampersend.ai)"
   exit 1

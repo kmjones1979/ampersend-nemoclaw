@@ -2,7 +2,7 @@
   "name": "ampersend-nemoclaw",
   "version": "0.1.0",
   "private": true,
-  "description": "Ampersend agent payments integration for OpenShell / NemoClaw",
+  "description": "ampersend agent payments integration for OpenShell / NemoClaw",
   "scripts": {
     "test": "bash scripts/test-all.sh",
     "test:policy": "bash scripts/test-openshell-policy.sh",

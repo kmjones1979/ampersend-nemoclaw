@@ -1,18 +1,18 @@
 """
 nemoclaw-ampersend-blueprint.py
 ────────────────────────────────────────────────────────────────
-NemoClaw Blueprint: Ampersend Agent Payments Integration
+NemoClaw Blueprint: ampersend Agent Payments Integration
 
-Wires Ampersend's x402 payment capabilities into a NemoClaw /
+Wires ampersend's x402 payment capabilities into a NemoClaw /
 OpenShell sandbox so that the OpenClaw agent can make autonomous
 payments using smart account wallets.
 
 Stages
 ------
-1. resolve   — verify Ampersend CLI is configured and reachable
+1. resolve   — verify ampersend CLI is configured and reachable
 2. plan      — build the OpenShell policy and inference config
-3. apply     — create/update the sandbox with the Ampersend policy
-4. validate  — confirm the agent can reach the Ampersend API
+3. apply     — create/update the sandbox with the ampersend policy
+4. validate  — confirm the agent can reach the ampersend API
 
 Usage (inside NemoClaw):
     nemoclaw setup --blueprint nemoclaw-ampersend-blueprint.py
@@ -49,7 +49,7 @@ except ImportError:
     )
     sys.exit(1)
 
-app = typer.Typer(help="NemoClaw blueprint: Ampersend agent payments integration")
+app = typer.Typer(help="NemoClaw blueprint: ampersend agent payments integration")
 console = Console()
 
 # ── Constants ────────────────────────────────────────────────────────────────
@@ -73,7 +73,7 @@ def run(cmd: list[str], check: bool = True, capture: bool = False) -> subprocess
 
 def ampersend_check_status(api_url: str) -> dict:
     """
-    Check Ampersend API reachability and optionally check config status
+    Check ampersend API reachability and optionally check config status
     via the CLI if available.
     """
     result = {"api_reachable": False, "cli_configured": False, "details": {}}
@@ -102,7 +102,7 @@ def ampersend_check_status(api_url: str) -> dict:
 
 def build_policy(extra_binaries: list[str] | None = None) -> dict:
     """
-    Build the OpenShell policy dict that allows egress to Ampersend
+    Build the OpenShell policy dict that allows egress to ampersend
     endpoints. Merges any extra binary paths the caller provides.
     """
     base_binaries = [
@@ -210,28 +210,28 @@ def build_policy(extra_binaries: list[str] | None = None) -> dict:
 # ── Blueprint stages ─────────────────────────────────────────────────────────
 
 def stage_resolve(api_url: str) -> dict:
-    """Stage 1 — verify Ampersend reachability and config."""
+    """Stage 1 — verify ampersend reachability and config."""
     console.rule("[bold cyan]Stage 1 · Resolve[/bold cyan]")
 
-    with console.status("Checking Ampersend API and CLI status…"):
+    with console.status("Checking ampersend API and CLI status…"):
         status = ampersend_check_status(api_url)
 
     if status["api_reachable"]:
-        console.print("[green]✓ Ampersend API reachable[/green]")
+        console.print("[green]✓ ampersend API reachable[/green]")
     else:
-        console.print("[yellow]⚠ Ampersend API not reachable (agent may still work via CLI)[/yellow]")
+        console.print("[yellow]⚠ ampersend API not reachable (agent may still work via CLI)[/yellow]")
 
     if status["cli_configured"]:
         details = status["details"]
-        table = Table(title="Ampersend Agent Configuration", show_lines=True)
+        table = Table(title="ampersend Agent Configuration", show_lines=True)
         table.add_column("Key", style="cyan")
         table.add_column("Value")
         for k, v in details.items():
             table.add_row(k, str(v))
         console.print(table)
-        console.print("[green]✓ Ampersend CLI configured[/green]")
+        console.print("[green]✓ ampersend CLI configured[/green]")
     else:
-        console.print("[yellow]⚠ Ampersend CLI not configured — run 'ampersend setup start' in the sandbox[/yellow]")
+        console.print("[yellow]⚠ ampersend CLI not configured — run 'ampersend setup start' in the sandbox[/yellow]")
 
     return status
 
@@ -282,19 +282,19 @@ def stage_apply(sandbox: str) -> None:
             "--file", str(POLICY_FILE),
         ])
 
-    console.print("[green]✓ OpenShell sandbox configured with Ampersend egress policy[/green]")
+    console.print("[green]✓ OpenShell sandbox configured with ampersend egress policy[/green]")
 
 
 def stage_validate(api_url: str, sandbox: str) -> None:
-    """Stage 4 — smoke-test: confirm the agent can reach Ampersend."""
+    """Stage 4 — smoke-test: confirm the agent can reach ampersend."""
     console.rule("[bold cyan]Stage 4 · Validate[/bold cyan]")
 
-    with console.status("Verifying Ampersend connectivity…"):
+    with console.status("Verifying ampersend connectivity…"):
         try:
             resp = httpx.get(f"{api_url}/api/health", timeout=TIMEOUT)
-            console.print(f"[green]✓ Ampersend API reachable (HTTP {resp.status_code})[/green]")
+            console.print(f"[green]✓ ampersend API reachable (HTTP {resp.status_code})[/green]")
         except Exception as e:
-            console.print(f"[yellow]⚠ Ampersend API check failed: {e}[/yellow]")
+            console.print(f"[yellow]⚠ ampersend API check failed: {e}[/yellow]")
 
     console.print(Panel(
         f"""
@@ -319,17 +319,17 @@ def main(
     sandbox: str = typer.Option(..., help="OpenShell sandbox name"),
     api_url: str = typer.Option(
         AMPERSEND_API_URL, envvar="AMPERSEND_API_URL",
-        help="Ampersend API URL"
+        help="ampersend API URL"
     ),
     skip_apply: bool = typer.Option(False, help="Plan only — do not touch the sandbox"),
 ) -> None:
     """
-    NemoClaw blueprint that wires Ampersend into an OpenShell sandbox.
+    NemoClaw blueprint that wires ampersend into an OpenShell sandbox.
 
     Runs four stages: resolve → plan → apply → validate.
     """
     console.print(Panel(
-        "[bold]NemoClaw × Ampersend Blueprint[/bold]\n"
+        "[bold]NemoClaw × ampersend Blueprint[/bold]\n"
         "x402 agent payments + OpenShell isolation",
         border_style="cyan",
     ))

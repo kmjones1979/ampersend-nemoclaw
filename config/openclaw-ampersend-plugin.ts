@@ -2,7 +2,7 @@
 /**
  * openclaw-ampersend-plugin.ts
  * ──────────────────────────────────────────────────────────────
- * OpenClaw plugin: Ampersend agent payments
+ * OpenClaw plugin: ampersend agent payments
  *
  * Adds `openclaw ampersend <command>` to the OpenClaw CLI so agents
  * running inside an OpenShell / NemoClaw sandbox can make x402
@@ -20,7 +20,7 @@
  *
  * Configuration
  * -------------
- *   The Ampersend CLI stores config locally (~/.ampersend/).
+ *   The ampersend CLI stores config locally (~/.ampersend/).
  *   Use `ampersend setup start` + `ampersend setup finish` for automated setup,
  *   or `ampersend config set` for manual configuration.
  *
@@ -127,7 +127,7 @@ function checkCLIInstalled(): boolean {
 async function cmdSetup(ctx: PluginContext, args: string[]): Promise<void> {
   if (!checkCLIInstalled()) {
     ctx.error(
-      "Ampersend CLI not found. Install it:\n" +
+      "ampersend CLI not found. Install it:\n" +
       "  npm install -g @ampersend_ai/ampersend-sdk@0.0.16"
     );
     ctx.exit(1);
@@ -145,6 +145,10 @@ async function cmdSetup(ctx: PluginContext, args: string[]): Promise<void> {
       force = true;
     } else if (args[i] === "--daily-limit" && args[i + 1]) {
       extraArgs.push("--daily-limit", args[++i]);
+    } else if (args[i] === "--monthly-limit" && args[i + 1]) {
+      extraArgs.push("--monthly-limit", args[++i]);
+    } else if (args[i] === "--per-transaction-limit" && args[i + 1]) {
+      extraArgs.push("--per-transaction-limit", args[++i]);
     } else if (args[i] === "--auto-topup") {
       extraArgs.push("--auto-topup");
     }
@@ -197,18 +201,18 @@ async function cmdSetup(ctx: PluginContext, args: string[]): Promise<void> {
  * Shows current config and connectivity.
  */
 async function cmdStatus(cfg: AmpersendConfig, ctx: PluginContext): Promise<void> {
-  ctx.log("Checking Ampersend configuration…\n");
+  ctx.log("Checking ampersend configuration…\n");
 
   if (!checkCLIInstalled()) {
     ctx.error(
-      "✗ Ampersend CLI not installed.\n" +
+      "✗ ampersend CLI not installed.\n" +
       "  Install: npm install -g @ampersend_ai/ampersend-sdk@0.0.16"
     );
     ctx.exit(1);
     return;
   }
 
-  ctx.log("✓ Ampersend CLI installed");
+  ctx.log("✓ ampersend CLI installed");
 
   const result = runAmpersendCLI(["config", "status"]);
 
@@ -226,9 +230,9 @@ async function cmdStatus(cfg: AmpersendConfig, ctx: PluginContext): Promise<void
   // API reachability
   try {
     const res = await fetch(`${cfg.apiUrl}/api/health`);
-    ctx.log(`✓ Ampersend API     reachable (${res.status})`);
+    ctx.log(`✓ ampersend API     reachable (${res.status})`);
   } catch (e) {
-    ctx.error(`✗ Ampersend API     FAILED: ${(e as Error).message}`);
+    ctx.error(`✗ ampersend API     FAILED: ${(e as Error).message}`);
   }
 
   ctx.log(`\nAPI URL:   ${cfg.apiUrl}`);
@@ -241,7 +245,7 @@ async function cmdStatus(cfg: AmpersendConfig, ctx: PluginContext): Promise<void
  */
 async function cmdFetch(ctx: PluginContext, args: string[]): Promise<void> {
   if (!checkCLIInstalled()) {
-    ctx.error("Ampersend CLI not found. Install: npm install -g @ampersend_ai/ampersend-sdk@0.0.16");
+    ctx.error("ampersend CLI not found. Install: npm install -g @ampersend_ai/ampersend-sdk@0.0.16");
     ctx.exit(1);
     return;
   }
@@ -278,7 +282,7 @@ async function cmdFetch(ctx: PluginContext, args: string[]): Promise<void> {
  */
 async function cmdInspect(ctx: PluginContext, url: string): Promise<void> {
   if (!checkCLIInstalled()) {
-    ctx.error("Ampersend CLI not found. Install: npm install -g @ampersend_ai/ampersend-sdk@0.0.16");
+    ctx.error("ampersend CLI not found. Install: npm install -g @ampersend_ai/ampersend-sdk@0.0.16");
     ctx.exit(1);
     return;
   }
@@ -308,7 +312,7 @@ async function cmdInspect(ctx: PluginContext, url: string): Promise<void> {
  */
 async function cmdConfig(ctx: PluginContext, args: string[]): Promise<void> {
   if (!checkCLIInstalled()) {
-    ctx.error("Ampersend CLI not found. Install: npm install -g @ampersend_ai/ampersend-sdk@0.0.16");
+    ctx.error("ampersend CLI not found. Install: npm install -g @ampersend_ai/ampersend-sdk@0.0.16");
     ctx.exit(1);
     return;
   }
@@ -345,21 +349,21 @@ const ampersendPlugin: OpenClawPlugin = {
   name: "ampersend",
   version: "0.1.0",
   description:
-    "Autonomous agent payments via Ampersend and the x402 protocol. " +
+    "Autonomous agent payments via ampersend and the x402 protocol. " +
     "Make payments, check status, and manage smart account wallets from OpenClaw.",
 
   commands: {
 
     setup: {
-      description: "Set up an Ampersend agent account (two-step approval flow).",
-      usage: "openclaw ampersend setup --name <agent-name> [--force] [--daily-limit <amount>]",
+      description: "Set up an ampersend agent account (two-step approval flow).",
+      usage: "openclaw ampersend setup --name <name> [--force] [--daily-limit <amt>] [--auto-topup]",
       async handler(args, ctx) {
         await cmdSetup(ctx, args);
       },
     },
 
     status: {
-      description: "Check Ampersend CLI config and API connectivity.",
+      description: "Check ampersend CLI config and API connectivity.",
       usage: "openclaw ampersend status",
       async handler(_args, ctx) {
         const cfg = loadConfig();
@@ -384,7 +388,7 @@ const ampersendPlugin: OpenClawPlugin = {
     },
 
     config: {
-      description: "Manually set Ampersend agent configuration.",
+      description: "Manually set ampersend agent configuration.",
       usage: 'openclaw ampersend config <key:::account>',
       async handler(args, ctx) {
         await cmdConfig(ctx, args);

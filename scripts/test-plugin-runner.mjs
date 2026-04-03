@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Test runner for the Ampersend OpenClaw plugin (Node ESM).
+ * Test runner for the ampersend OpenClaw plugin (Node ESM).
  * Uses tsx to run the TypeScript plugin; falls back to instructions if tsx missing.
  *
  * Usage: node scripts/test-plugin-runner.mjs [command] [args...]

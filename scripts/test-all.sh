@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Run all Ampersend + OpenShell/NemoClaw integration tests.
+# Run all ampersend + OpenShell/NemoClaw integration tests.
 # - Policy YAML validation (no credentials)
 # - Blueprint dry-run (no credentials needed)
 # - Plugin status (needs ampersend CLI configured)
@@ -9,7 +9,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 
 echo "=============================================="
-echo "  Ampersend × OpenShell / NemoClaw — test suite"
+echo "  ampersend × OpenShell / NemoClaw — test suite"
 echo "=============================================="
 echo ""
 
@@ -18,7 +18,7 @@ echo "1/3 OpenShell policy"
 bash "$SCRIPT_DIR/test-openshell-policy.sh"
 echo ""
 
-# 2) Blueprint (always runs — no credentials needed for Ampersend blueprint)
+# 2) Blueprint (always runs — no credentials needed for ampersend blueprint)
 echo "2/3 NemoClaw blueprint (resolve + plan, --skip-apply)"
 bash "$SCRIPT_DIR/test-blueprint.sh" || exit 1
 echo ""
