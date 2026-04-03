@@ -16,8 +16,8 @@ ampersend enables autonomous agent payments using smart account wallets and the 
 ### 1. Configure
 
 ```bash
-git clone https://github.com/kmjones1979/1claw-nemoclaw.git
-cd 1claw-nemoclaw
+git clone https://github.com/kmjones1979/ampersend-nemoclaw.git
+cd ampersend-nemoclaw
 npm install
 cp .env.example .env   # then edit .env
 ```
@@ -128,7 +128,7 @@ openshell gateway start --plaintext
 On your Mac, in this repo:
 
 ```bash
-cd 1claw-nemoclaw
+cd ampersend-nemoclaw
 npm install
 npm run nemoclaw:interactive
 ```

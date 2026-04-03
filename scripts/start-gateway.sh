@@ -5,7 +5,7 @@
 
 set -e
 
-GATEWAY_CONTAINER_NAME="1claw-gateway"
+GATEWAY_CONTAINER_NAME="ampersend-gateway"
 
 # Check if gateway is already running
 if docker ps --format '{{.Names}}' 2>/dev/null | grep -q "openshell-cluster-openshell"; then

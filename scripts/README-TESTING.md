@@ -42,7 +42,7 @@ Optional for full flow:
 
 ```bash
 # From repo root
-cd /path/to/1claw-nemoclaw
+cd /path/to/ampersend-nemoclaw
 
 # Node (for plugin tests)
 npm install
