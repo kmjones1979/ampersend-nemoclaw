@@ -16,6 +16,7 @@ version: 1
 filesystem_policy:
   include_workdir: true
   read_only:
+    - /app
     - /usr
     - /lib
     - /lib64
@@ -24,6 +25,7 @@ filesystem_policy:
     - /etc
     - /bin
     - /sbin
+    - /var/log
   read_write:
     - /sandbox
     - /tmp
@@ -95,6 +97,19 @@ network_policies:
   # Agents may need to reach arbitrary x402-enabled servers
   # to make payments. Add specific hosts here as needed.
   # For broad access, use audit mode first to discover hosts.
+  x402_endpoints:
+    name: x402-payment-endpoints
+    endpoints:
+      - host: httpay.xyz
+        port: 443
+        protocol: rest
+        tls: terminate
+        enforcement: enforce
+        access: read-write
+    binaries:
+      - path: /usr/bin/node
+      - path: /usr/bin/npx
+      - path: /sandbox/.local/bin/**
 
   # ── Base blockchain RPC ─────────────────────────────────
   # Smart account wallets need RPC access to Base (mainnet
